@@ -1,0 +1,59 @@
+{
+    "quotes": [
+        {
+            "quote": "The only limit to our realization of tomorrow is our doubts of today.",
+            "author": "Franklin D. Roosevelt"
+        },
+        {
+            "quote": "In the middle of every difficulty lies opportunity.",
+            "author": "Albert Einstein"
+        },
+        {
+            "quote": "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+            "author": "Winston Churchill"
+        }
+    ],
+    
+    "top_authors": [
+        {
+            "author": "Albert Einstein",
+            "reaction_count": 5
+        },
+        {
+            "author": "Winston Churchill",
+            "reaction_count": 3
+        },
+        {
+            "author": "Franklin D. Roosevelt",
+            "reaction_count": 2
+        }
+    ],
+
+    "top_quotes": [
+        {
+            "quote": "In the middle of every difficulty lies opportunity.",
+            "reaction_count": 5
+        },
+        {
+            "quote": "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+            "reaction_count": 3
+        },
+        {
+            "quote": "The only limit to our realization of tomorrow is our doubts of today.",
+            "reaction_count": 2
+        }
+    ],
+
+    "top_quote": {
+        "quote": "In the middle of every difficulty lies opportunity.",
+        "author": "Albert Einstein",
+        "reaction_count": 5
+    },
+
+    "summary": {
+        "total_quotes": 3,
+        "total_authors": 3,
+        "total_reactions": 10
+    }
+
+}

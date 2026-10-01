@@ -1,0 +1,9 @@
+#virtual environment
+venv/
+.vscode/
+__pycache__/
+
+#secret files and sessions
+.env
+*.session
+

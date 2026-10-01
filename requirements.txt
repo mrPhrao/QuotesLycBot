@@ -1,0 +1,3 @@
+telethon==1.45.0
+pyTelegramBotApi==4.37.0
+python-dotenv==1.2.2
