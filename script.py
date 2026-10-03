@@ -9,8 +9,12 @@ dotenv.load_dotenv()
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
-CHANNEL = os.getenv("CHANNEL_INFO")
-DAYS = int(os.getenv("DAYS"))
+
+with open("config.json", "r") as f:
+    config = json.load(f)
+
+CHANNEL = config["CHANNEL"]
+DAYS = config["DAYS"]
 
 
 def parse_quote(text) -> str | None:
@@ -23,8 +27,8 @@ def parse_quote(text) -> str | None:
 def parse_author(text) -> str | None:
     if not text or "©" not in text:
         return None
-    author = text.split("©")[1].strip()
-    return author
+    author = text.split("©")[1].strip().split(" ")[0]
+    return author or None
 
 
 def count_reactions(message: telethon.tl.types.Message) -> int:
@@ -41,6 +45,8 @@ async def collect_messages(client: telethon.TelegramClient) -> list:
     async for message in client.iter_messages(CHANNEL, offset_date=now):
         if message.date < cutoff:
             break
+        if message.text is None:
+            continue
         if "©" not in message.text: # отсеиваем не цитаты
             continue
         messages.append(message)
