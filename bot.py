@@ -7,7 +7,11 @@ import sys
 
 dotenv.load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL = os.getenv("CHANNEL_SEND")
+
+with open ("config.json", "r") as f:
+    config = json.load(f)
+
+ADMIN_CHAT_ID = config["ADMIN_CHAT_ID"]
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -58,6 +62,16 @@ def help(message: telebot.types.Message) -> None:
     )
     bot.reply_to(message, help_text)
 
+
+@bot.message_handler(commands=["check"])
+def check(message : telebot.types.Message) -> None:
+    check_text = "Если ты это читаешь, значит @phra0n все настроил и бот полностью рабочий!"
+    try:
+        bot.send_message(ADMIN_CHAT_ID, check_text)
+        print("Сообщение успешно доставлено")
+    except Exception as e:
+        print(f"Сообщение не доставлено : {e}")
+
 is_running = False
 
 @bot.message_handler(commands=["report"])
@@ -100,8 +114,8 @@ def report(message: telebot.types.Message) -> None:
         bot.send_message(chat_id, report_text)
 
         try:
-            bot.send_message(CHANNEL, report_text)
-            bot.send_message(chat_id, f"Опубликовано в {CHANNEL}.")
+            bot.send_message(ADMIN_CHAT_ID, report_text)
+            bot.send_message(chat_id, f"Опубликовано в {ADMIN_CHAT_ID}.")
         except telebot.apihelper.ApiTelegramException as e:
             bot.send_message(chat_id, f"Не удалось опубликовать: {e.description}")
     finally:
@@ -110,7 +124,7 @@ def report(message: telebot.types.Message) -> None:
 
 bot.set_my_commands([
     telebot.types.BotCommand("start", "Запустить бота"),
-    telebot.types.BotCommand("report", "Собрать и опубликовать отчёт"),
+    telebot.types.BotCommand("report", "Собрать и опубликовать ТОП недели"),
     telebot.types.BotCommand("help", "Показать помощь"),
 ])
 
