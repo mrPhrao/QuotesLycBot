@@ -125,8 +125,6 @@ def report(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=["phrao_report"])
 def phrao_report(message: telebot.types.Message) -> None:
-    chat_id = message.chat.id
-
     global is_running
     if is_running:
         return
@@ -140,31 +138,28 @@ def phrao_report(message: telebot.types.Message) -> None:
                 text=True,
                 timeout=60,  
             )
-            bot.send_message(chat_id, "Сбор данных завершён.")
+            bot.send_message(PHRAO_CHAT_ID, "Сбор данных завершён.")
 
         except subprocess.TimeoutExpired:
-            bot.send_message(chat_id, "Сбор данных занял слишком много времени. Прервано.")
+            bot.send_message(PHRAO_CHAT_ID, "Сбор данных занял слишком много времени. Прервано.")
             return
 
         if result.returncode != 0:
-            bot.send_message(chat_id, f"Юзербот упал с ошибкой:\n{result.stderr}")
+            bot.send_message(PHRAO_CHAT_ID, f"Юзербот упал с ошибкой:\n{result.stderr}")
             return
 
         last_report_file = get_last_report()
         if last_report_file is None:
-            bot.send_message(chat_id, "Отчётов нет, хотя юзербот завершился успешно. Странно.")
+            bot.send_message(PHRAO_CHAT_ID, "Отчётов нет, хотя юзербот завершился успешно. Странно.")
             return
 
         report_text = build_message(last_report_file)
 
-        bot.send_message(chat_id, "Отчёт готов:")
-        bot.send_message(chat_id, report_text)
-
         try:
-            bot.send_message(ADMIN_CHAT_ID, report_text)
-            bot.send_message(chat_id, f"Опубликовано в {PHRAO_CHAT_ID}.")
+            bot.send_message(PHRAO_CHAT_ID, report_text)
+            bot.send_message(PHRAO_CHAT_ID, f"Опубликовано в {PHRAO_CHAT_ID}.")
         except telebot.apihelper.ApiTelegramException as e:
-            bot.send_message(chat_id, f"Не удалось опубликовать: {e.description}")
+            bot.send_message(PHRAO_CHAT_ID, f"Не удалось опубликовать: {e.description}")
     finally:
         is_running = False
 
