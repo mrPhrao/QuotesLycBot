@@ -7,3 +7,10 @@ __pycache__/
 .env
 *.session
 
+#logs
+last_run_log.txt
+
+#unnecessary files
+#Not conventional tests.py
+#I just test new features there, don't pay attention
+tests.py
