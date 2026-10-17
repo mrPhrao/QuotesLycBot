@@ -5,6 +5,9 @@ import os
 import datetime
 import json
 
+from logger import Logger
+logger = Logger("last_run_log.txt")
+
 dotenv.load_dotenv()
 
 API_ID = int(os.getenv("API_ID"))
@@ -24,11 +27,25 @@ def parse_quote(text) -> str | None:
     return quote
 
 
-def parse_author(text) -> str | None:
+def parse_author(text) -> tuple[str | None, str | None]:
     if not text or "©" not in text:
-        return None
-    author = text.split("©")[1].strip().split(" ")[0]
-    return author or None
+        return None, None
+    
+    full_author = text.split("©")[1].strip()
+    
+    words = full_author.split()
+    clean_words = []
+
+    if words:
+        for word in words[:2]:
+            if word[0].isupper():
+                clean_words.append(word)
+            else:
+                break
+            
+    clean_author = " ".join(clean_words)
+        
+    return full_author, clean_author
 
 
 def count_reactions(message: telethon.tl.types.Message) -> int:
@@ -59,37 +76,45 @@ def build_report_json(messages: list) -> dict:
     author_reaction_count = {}
 
     for message in messages:
-        author = parse_author(message.text)
-        if not author:
+        full_author, clean_author = parse_author(message.text)
+        if not full_author or not clean_author:
+            logger.log_error(f"не найден автор {message.text}")
             continue
 
         quote = parse_quote(message.text)
         if not quote:
+            logger.log_error(f"не найден текст цитаты {message.text}")
             continue
 
         reactions = count_reactions(message)
         
         quotes.append({
             "quote": quote,
-            "author": author,
+            "full_author": full_author, 
+            "clean_author": clean_author, # (опционально, для отладки)
             "reactions": reactions,
         })
-        author_reaction_count[author] = author_reaction_count.get(author, 0) + reactions
 
-    all_quotes = [{"quote": q["quote"], "author": q["author"], "reactions": q["reactions"]} for q in quotes]
+        author_reaction_count[clean_author] = author_reaction_count.get(clean_author, 0) + reactions
+
+    all_quotes = [{
+        "quote": q["quote"],
+        "clean_author": q["clean_author"],
+        "full_author": q["full_author"],
+        "reactions": q["reactions"]}  for q in quotes]
 
 
     top_quotes_sorted = sorted(quotes, key=lambda x: x["reactions"], reverse=True)
     top_quotes = [
-        {"quote": q["quote"], "reaction_count": q["reactions"]}
+        {"quote": q["quote"], "author": q["full_author"], "reaction_count": q["reactions"]}
         for q in top_quotes_sorted[0:3]
     ]
 
 
     top_authors_sorted = sorted(author_reaction_count.items(), key=lambda x: x[1], reverse=True)
     top_authors = [
-        {"author": author, "reaction_count": count}
-        for author, count in top_authors_sorted[0:5]
+        {"author": author_key, "reaction_count": count}
+        for author_key, count in top_authors_sorted[0:5]
     ]
 
     top_quote = None
@@ -97,7 +122,7 @@ def build_report_json(messages: list) -> dict:
         best = top_quotes_sorted[0]
         top_quote = {
             "quote": best["quote"],
-            "author": best["author"],
+            "author": best["full_author"],
             "reaction_count": best["reactions"],
         }
 
@@ -122,13 +147,17 @@ def save_report(report: dict) -> None:
 
 
 async def main():
+    logger.log_process("Запуск сбора сообщений...")
     client = telethon.TelegramClient("session", API_ID, API_HASH)
     await client.start()
     try:
         messages = await collect_messages(client)
+        
+        logger.log_process(f"Собрано сообщений: {len(messages)}")
         report = build_report_json(messages)
         save_report(report)
-        print("Done")
+
+        logger.log_success("Отчет успешно сгенерирован и сохранен")
     finally:
         await client.disconnect()
 
